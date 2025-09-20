@@ -1,0 +1,23 @@
+# Exemplo de código na nossa linguagem
+var x = 10;
+var nome_usuario = "Maria"; # Strings são suportadas
+
+funcao calcular_soma(a, b) {
+    var resultado = a + b;
+    retorna resultado;
+}
+
+var y = 20;
+var soma = calcular_soma(x, y);
+
+# Estrutura condicional
+se (soma > 30) {
+    x = 1;
+} senao {
+    x = 2;
+}
+
+# Loop
+enquanto (x < 5) {
+    x = x + 1;
+}
