@@ -1,27 +1,30 @@
 # main.py
-from lexer import Lexer
-from parser import Parser
 
-def main():
-    try:
-        with open('teste_simples.lang', 'r', encoding='utf-8') as f:
-            code = f.read()
+from lexer import AnalisadorLexico
+from token_type import TokenType  # <--- CORRIGIDO: importado do arquivo correto
 
-        print("--- Iniciando Análise Léxica ---")
-        lexer = Lexer(code)
-        tokens = lexer.tokenize()
-        print("Tokens Gerados:")
-        for token in tokens:
-            print(token)
+codigo_fonte = """
+programa Exemplo;
+var
+   idade: inteiro;
+   acesso_permitido: logico;
+inicio
+   idade := 25;
+   se (idade >= 18) entao
+      escreva('Acesso permitido!');
+   senao
+      escreva('Acesso negado.');
+   fimse
+fim.
+"""
 
-        print("\n--- Iniciando Análise Sintática (Parsing) ---")
-        parser = Parser(tokens)
-        ast = parser.parse()
-        print("Árvore de Sintaxe Abstrata (AST) Gerada:")
-        print(ast)
+print("--- Iniciando Análise Léxica ---")
+lexer = AnalisadorLexico(codigo_fonte)
 
-    except (SyntaxError, Exception) as e:
-        print(f"\nOcorreu um erro durante a análise: {e}")
+token = lexer.proximo_token()
+while token.tipo != TokenType.EOF:
+   print(token)
+   token = lexer.proximo_token()
 
-if __name__ == '__main__':
-    main()
+print(token)  # Imprime o token EOF
+print("--- Análise Léxica Concluída ---")

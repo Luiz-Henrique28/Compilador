@@ -1,143 +1,156 @@
-# parser.py
-from lexer import TokenType
+# /home/runner/workspace/parser.py
 
-# --- Definições dos Nós da AST (Árvore de Sintaxe Abstrata) ---
-# Adicionei estas classes porque o parser precisa delas para construir a árvore.
+from token_type import TokenType
+from ast_nodes import (BinOp, Num, Var, Assign, VarDecl, BlockNode, IfNode,
+                       WhileNode, StringNode, ProgramaNode, NoOp, TipoNode,
+                       UnaryOp, EscritaNode)
 
-class ASTNode:
-    pass
-
-class ProgramNode(ASTNode):
-    def __init__(self, statements):
-        self.statements = statements
-    def __repr__(self):
-        return f"ProgramNode({self.statements})"
-
-class VarDeclNode(ASTNode):
-    def __init__(self, identifier, expression):
-        self.identifier = identifier
-        self.expression = expression
-    def __repr__(self):
-        return f"VarDeclNode(ID:{self.identifier}, Expr:{self.expression})"
-
-class BinOp(ASTNode):
-    def __init__(self, left, op, right):
-        self.left = left
-        self.op = op
-        self.right = right
-    def __repr__(self):
-        return f"({self.left} {self.op.value} {self.right})"
-
-class NumberNode(ASTNode):
-    def __init__(self, value):
-        # Converte o valor para int aqui para garantir
-        self.value = int(value)
-    def __repr__(self):
-        return f"Number({self.value})"
-
-class VarAccessNode(ASTNode):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
-    def __repr__(self):
-        return f"VarAccess({self.value})"
-
-class StringNode(ASTNode):
-    def __init__(self, value):
-        self.value = value
-    def __repr__(self):
-        return f"String('{self.value}')"
-
-# --- Parser ---
 
 class Parser:
-    def __init__(self, tokens):
-        self.tokens = tokens
-        self.token_idx = -1
-        self.current_token = None
-        self.advance()
 
-    def advance(self):
-        self.token_idx += 1
-        if self.token_idx < len(self.tokens):
-            self.current_token = self.tokens[self.token_idx]
-        return self.current_token
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.current_token = self.lexer.get_next_token()
 
-    def consume(self, token_type):
-        if self.current_token.type == token_type:
-            self.advance()
+    def error(self, message="Token inesperado"):
+        raise Exception(f"Erro de Sintaxe: {message} -> {self.current_token}")
+
+    def eat(self, tipo_token):
+        if self.current_token.tipo == tipo_token:
+            self.current_token = self.lexer.get_next_token()
         else:
-            raise Exception(f"Erro de sintaxe: Esperado {token_type}, mas encontrado {self.current_token.type}")
+            self.error(
+                f"Esperado {tipo_token}, mas encontrou {self.current_token.tipo}"
+            )
+
+    def fator(self):
+        token = self.current_token
+        if token.tipo == TokenType.MAIS:
+            self.eat(TokenType.MAIS)
+            return UnaryOp(token, self.fator())
+        elif token.tipo == TokenType.MENOS:
+            self.eat(TokenType.MENOS)
+            return UnaryOp(token, self.fator())
+        elif token.tipo == TokenType.INTEIRO_CONST:
+            self.eat(TokenType.INTEIRO_CONST)
+            return Num(token)
+        elif token.tipo == TokenType.REAL_CONST:
+            self.eat(TokenType.REAL_CONST)
+            return Num(token)
+        elif token.tipo == TokenType.LPAREN:
+            self.eat(TokenType.LPAREN)
+            node = self.expr()
+            self.eat(TokenType.RPAREN)
+            return node
+        else:
+            return self.variavel()
+
+    def termo(self):
+        node = self.fator()
+        while self.current_token.tipo in (TokenType.MULT,
+                                          TokenType.DIV_INTEIRA,
+                                          TokenType.DIV_REAL):
+            token = self.current_token
+            if token.tipo == TokenType.MULT:
+                self.eat(TokenType.MULT)
+            elif token.tipo == TokenType.DIV_INTEIRA:
+                self.eat(TokenType.DIV_INTEIRA)
+            elif token.tipo == TokenType.DIV_REAL:
+                self.eat(TokenType.DIV_REAL)
+            node = BinOp(left=node, op=token, right=self.fator())
+        return node
+
+    def expr(self):
+        node = self.termo()
+        while self.current_token.tipo in (TokenType.MAIS, TokenType.MENOS):
+            token = self.current_token
+            if token.tipo == TokenType.MAIS:
+                self.eat(TokenType.MAIS)
+            elif token.tipo == TokenType.MENOS:
+                self.eat(TokenType.MENOS)
+            node = BinOp(left=node, op=token, right=self.termo())
+        return node
+
+    def declaracao(self):
+        if self.current_token.tipo == TokenType.ID:
+            return self.atribuicao()
+        if self.current_token.tipo == TokenType.ESCREVA:
+            return self.declaracao_escrita()
+        # Adicionar outras declarações como SE, ENQUANTO, etc. aqui
+        return NoOp()
+
+    def declaracao_escrita(self):
+        self.eat(TokenType.ESCREVA)
+        self.eat(TokenType.LPAREN)
+        node = EscritaNode(self.expr())
+        self.eat(TokenType.RPAREN)
+        return node
+
+    def atribuicao(self):
+        left = self.variavel()
+        token = self.current_token
+        self.eat(TokenType.ATRIBUICAO)
+        right = self.expr()
+        return Assign(left, token, right)
+
+    def variavel(self):
+        node = Var(self.current_token)
+        self.eat(TokenType.ID)
+        return node
+
+    def tipo(self):
+        token = self.current_token
+        if token.tipo == TokenType.INTEIRO_TIPO:
+            self.eat(TokenType.INTEIRO_TIPO)
+        elif token.tipo == TokenType.REAL_TIPO:
+            self.eat(TokenType.REAL_TIPO)
+        return TipoNode(token)
+
+    def declaracoes_variaveis(self):
+        declaracoes = []
+        if self.current_token.tipo == TokenType.VAR:
+            self.eat(TokenType.VAR)
+            while self.current_token.tipo == TokenType.ID:
+                var_node = Var(self.current_token)
+                self.eat(TokenType.ID)
+                self.eat(TokenType.DOIS_PONTOS)
+                tipo_node = self.tipo()
+                declaracoes.append(VarDecl(var_node, tipo_node))
+                self.eat(TokenType.PONTO_VIRGULA)
+        return declaracoes
+
+    def lista_declaracoes(self):
+        nodes = [self.declaracao()]
+        while self.current_token.tipo == TokenType.PONTO_VIRGULA:
+            self.eat(TokenType.PONTO_VIRGULA)
+            nodes.append(self.declaracao())
+
+        # Checagem para garantir que não há um ID solto no final
+        if self.current_token.tipo == TokenType.ID:
+            self.error(
+                "ID inesperado no final de uma declaração. Faltou um ';' ?")
+
+        return nodes
+
+    def bloco_principal(self):
+        self.eat(TokenType.INICIO)
+        nodes = self.lista_declaracoes()
+        self.eat(TokenType.FIM)
+        self.eat(TokenType.PONTO)
+        return BlockNode(nodes)
+
+    def programa(self):
+        self.eat(TokenType.PROGRAMA)
+        nome_programa = self.variavel()
+        self.eat(TokenType.PONTO_VIRGULA)
+        declaracoes_vars = self.declaracoes_variaveis()
+        bloco_principal = self.bloco_principal()
+        return ProgramaNode(nome_programa, declaracoes_vars, bloco_principal)
 
     def parse(self):
-        statements = []
-        while self.current_token.type != TokenType.EOF:
-            statements.append(self.statement())
-            # Adicionado para consumir ponto e vírgula opcionais entre as declarações
-            if self.current_token.type == TokenType.SEMICOLON:
-                self.consume(TokenType.SEMICOLON)
-        return ProgramNode(statements)
+        node = self.programa()
+        if self.current_token.tipo != TokenType.EOF:
+            self.error("Código extra encontrado após o final do programa.")
 
-    def statement(self):
-        if self.current_token.type == TokenType.VAR_KEYWORD:
-            return self.variable_declaration()
-        else:
-            return self.expression()
-
-    def variable_declaration(self):
-        self.consume(TokenType.VAR_KEYWORD) # Consome 'var'
-        identifier_token = self.current_token
-        self.consume(TokenType.IDENTIFIER)
-        self.consume(TokenType.ASSIGN) # Consome '='
-        expr = self.expression()
-        return VarDeclNode(identifier_token.value, expr)
-
-    def expression(self):
-        return self.term()
-
-    def term(self):
-        node = self.factor()
-        while self.current_token.type == TokenType.OPERATOR and self.current_token.value in ('+', '-'):
-            op_token = self.current_token
-            self.consume(TokenType.OPERATOR)
-            right = self.factor()
-            node = BinOp(left=node, op=op_token, right=right)
+        print("Análise sintática concluída com sucesso!")
         return node
-
-    def factor(self):
-        node = self.power()
-        while self.current_token.type == TokenType.OPERATOR and self.current_token.value in ('*', '/'):
-            op_token = self.current_token
-            self.consume(TokenType.OPERATOR)
-            right = self.power()
-            node = BinOp(left=node, op=op_token, right=right)
-        return node
-
-    def power(self):
-        token = self.current_token
-
-        # >>>>> ESTA É A CORREÇÃO PRINCIPAL <<<<<
-        if token.type == TokenType.INTEGER_LITERAL:
-            self.consume(TokenType.INTEGER_LITERAL)
-            # Em vez de retornar token.value (uma string ou int), criamos um nó.
-            return NumberNode(token.value)
-
-        elif token.type == TokenType.STRING_LITERAL:
-            self.consume(TokenType.STRING_LITERAL)
-            return StringNode(token.value)
-
-        elif token.type == TokenType.IDENTIFIER:
-            return self.variable_access()
-
-        elif token.type == TokenType.LPAREN:
-            self.consume(TokenType.LPAREN)
-            node = self.expression()
-            self.consume(TokenType.RPAREN)
-            return node
-
-        raise Exception(f"Fator inválido: {token}")
-
-    def variable_access(self):
-        token = self.current_token
-        self.consume(TokenType.IDENTIFIER)
-        return VarAccessNode(token)

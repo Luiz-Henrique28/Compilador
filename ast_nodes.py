@@ -1,63 +1,110 @@
-# ast_nodes.py
+# /home/runner/workspace/ast_nodes.py
 
-class NumberNode:
+
+class AST:
+    pass
+
+
+class BinOp(AST):
+
+    def __init__(self, esq, op, dir):
+        self.esq = esq
+        self.token = self.op = op
+        self.dir = dir
+
+
+class Num(AST):
+
     def __init__(self, token):
         self.token = token
+        self.valor = token.valor
 
-    def __repr__(self):
-        return f'{self.token.value}'
 
-class StringNode:
+class StringNode(AST):
+
     def __init__(self, token):
         self.token = token
+        self.valor = token.valor
 
-    def __repr__(self):
-        return f'"{self.token.value}"'
 
-class BinOp:
-    def __init__(self, left, op, right):
-        self.left = left
-        self.op = op
-        self.right = right
+class UnaryOp(AST):
 
-    def __repr__(self):
-        return f'({self.left} {self.op.value} {self.right})'
+    def __init__(self, op, expr):
+        self.token = self.op = op
+        self.expr = expr
 
-class VarDecl:
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
 
-    def __repr__(self):
-        return f'VarDecl(name={self.name}, value={self.value})'
+class TipoNode(AST):
+    """Representa o tipo de uma variável (ex: INTEIRO, REAL)"""
 
-class VarAccess:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, token):
+        self.token = token
+        self.valor = token.valor
 
-    def __repr__(self):
-        return f'VarAccess(name={self.name})'
 
-class IfNode:
-    def __init__(self, condition, body):
-        self.condition = condition
-        self.body = body
+class VarDecl(AST):
 
-    def __repr__(self):
-        return f'If(condition={self.condition}, body={self.body})'
+    def __init__(self, var_node, tipo_node):
+        self.var_node = var_node
+        self.tipo_node = tipo_node
 
-class BlockNode:
-    def __init__(self, statements):
-        self.statements = statements
 
-    def __repr__(self):
-        return f'Block({self.statements})'
+class Assign(AST):
 
-# UnaryOp pode ser útil no futuro para operadores como '-' (negativo)
-class UnaryOp:
-    def __init__(self, op, node):
-        self.op = op
-        self.node = node
+    def __init__(self, esq, op, dir):
+        self.esq = esq
+        self.token = self.op = op
+        self.dir = dir
 
-    def __repr__(self):
-        return f'({self.op.value}{self.node})'
+
+class Var(AST):
+    """O nó Var é usado quando a variável é referenciada/usada em uma expressão."""
+
+    def __init__(self, token):
+        self.token = token
+        self.valor = token.valor
+
+
+class BlockNode(AST):
+
+    def __init__(self):
+        self.declarations = []
+        self.statements = []
+
+
+class IfNode(AST):
+
+    def __init__(self, condicao, bloco_se, bloco_senao):
+        self.condicao = condicao
+        self.bloco_se = bloco_se
+        self.bloco_senao = bloco_senao  # Pode ser None
+
+
+class WhileNode(AST):
+
+    def __init__(self, condicao, bloco):
+        self.condicao = condicao
+        self.bloco = bloco
+
+
+# --- Nova Classe Adicionada ---
+class EscritaNode(AST):
+    """Representa a instrução ESCREVA."""
+
+    def __init__(self, expr):
+        self.expr = expr
+
+
+# -----------------------------
+
+
+class NoOp(AST):
+    """Representa uma instrução vazia."""
+    pass
+
+
+class ProgramaNode(AST):
+
+    def __init__(self, nome, bloco):
+        self.nome = nome
+        self.bloco = bloco

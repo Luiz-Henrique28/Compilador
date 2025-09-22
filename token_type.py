@@ -4,27 +4,48 @@ from enum import Enum, auto
 # Define todos os tipos de tokens possíveis que nosso analisador léxico pode gerar.
 class TokenType(Enum):
     # Palavras-chave
-    VAR_KEYWORD = auto()
-    IF_KEYWORD = auto()
-    ELSE_KEYWORD = auto()
+    PROGRAMA = auto()
+    VAR = auto()
+    INTEIRO_TIPO = auto()
+    REAL_TIPO = auto()
+    TEXTO_TIPO = auto()
+    SE = auto()
+    SENAO = auto()
+    FIMSE = auto()  # Adicionado
+    ENQUANTO = auto()
+    FIMENQUANTO = auto()  # Adicionado
+    FUNCAO = auto()  # Adicionado
+    FIMFUNCAO = auto()  # Adicionado
+    RETORNE = auto()  # Adicionado
+    ESCREVA = auto()
+    LEIA = auto()
+    INICIO = auto()
+    FIM = auto()
 
-    # Identificadores e Literais
-    IDENTIFIER = auto()
-    INTEGER_LITERAL = auto()
-    STRING_LITERAL = auto()
+    # Símbolos e Operadores
+    DOIS_PONTOS = auto()
+    PONTO_VIRGULA = auto()
+    VIRGULA = auto()
+    ATRIBUICAO = auto()
+    SOMA = auto()  # +
+    SUB = auto()   # -
+    MULT = auto()  # *
+    DIV = auto()   # /
+    IGUAL = auto()
+    MENOR = auto()
+    MAIOR = auto()
+    MENOR_IGUAL = auto()
+    MAIOR_IGUAL = auto()
+    DIFERENTE = auto()
+    LPAREN = auto()
+    RPAREN = auto()
 
-    # Operadores e Pontuação
-    ASSIGN = auto()          # Para o sinal de '='
-    OPERATOR = auto()        # <-- ADICIONADO: Para '+', '-', '*', '/' etc.
-    LPAREN = auto()          # '('
-    RPAREN = auto()          # ')'
-    LBRACE = auto()          # '{'
-    RBRACE = auto()          # '}'
-    SEMICOLON = auto()       # ';'
-    COMMA = auto()           # ','
+    # Literais e Identificadores
+    ID = auto()
+    INTEIRO_CONST = auto()  # Adicionado
+    INTEIRO = auto()
+    REAL = auto()
+    TEXTO = auto()
 
-    # Especiais
-    WHITESPACE = auto()
-    COMMENT = auto()
-    UNKNOWN = auto()
-    EOF = auto()             # End-Of-File (Fim do Arquivo)
+    # Fim de Arquivo
+    EOF = auto()
