@@ -1,0 +1,6 @@
+// Erro: falta 'main' após 'fn'
+fn programa() {
+    let x:i32;
+    x = 10;
+    print!(x);
+}

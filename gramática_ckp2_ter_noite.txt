@@ -1,0 +1,76 @@
+programa :
+    'fn' 'main' '(' ')' bloco ;
+
+bloco :
+    '{' listaComandos '}' ;
+
+listaComandos :
+    comando listaComandos |
+    comando ;
+
+comando :
+    declaracao |
+    atribuicao |
+    leitura |
+    escrita |
+    condicional |
+    repeticao |
+    bloco ;
+
+declaracao :
+    'let' mutavel ID ':' tipo ';';
+
+mutavel :
+    'mut' |
+    /* vazio */ ;
+
+tipo :
+    'i32' |
+    'f64';
+
+atribuicao :
+    ID '=' expressaoAritmetica ';';
+
+leitura :
+    'read' '(' ID ')' ';';
+
+escrita :
+    'print' '!' '(' (ID | CADEIA) ')' ';';
+
+condicional :
+    'if' expressaoRelacional bloco 
+    | 'if' expressaoRelacional bloco 'else' bloco ;
+
+repeticao :
+    'while' expressaoRelacional bloco ;
+
+expressaoAritmetica :
+    expressaoAritmetica '+' termo |
+    expressaoAritmetica '-' termo |
+    termo ;
+
+termo :
+    termo '*' fator |
+    termo '/' fator |
+    fator ;
+
+fator :
+    NUMINT |
+    NUMREAL |
+    ID |
+    '(' expressaoAritmetica ')' ;
+
+expressaoRelacional :
+    expressaoAritmetica OP_REL expressaoAritmetica |
+    '(' expressaoRelacional ')' |
+    expressaoRelacional operadorLogico termoRelacional ;
+
+termoRelacional :
+    expressaoAritmetica OP_REL expressaoAritmetica |
+    '(' expressaoRelacional ')' ;
+
+operadorLogico :
+    '&&' |
+    '||' |
+    '!' ;
+

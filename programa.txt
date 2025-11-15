@@ -1,0 +1,21 @@
+
+int x = 123
+float y = 123.456
+print(x, y)   
+
+if (x > 100) {
+    /* Comentário
+       de múltiplas linhas */
+    y = 456
+}
+
+ Teste de operadores
+x = x + 1
+y = y - 2
+x = x * 3
+y = y / 4
+x = 10
+if (x == 10) print(x)
+if (x != 0) print(y)
+if (x >= 1) print(y)
+if (x <= 100) print(y)

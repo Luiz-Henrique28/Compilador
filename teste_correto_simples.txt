@@ -1,0 +1,19 @@
+// Programa correto simples para teste
+fn main() {
+    let mut x:i32;
+    let y:f64;
+
+    x = 10;
+    y = 3.14;
+
+    if x > 5 {
+        print!("X eh maior que 5");
+    } else {
+        print!("X eh menor ou igual a 5");
+    }
+
+    while x > 0 {
+        print!(x);
+        x = x - 1;
+    }
+}
